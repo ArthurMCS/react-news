@@ -1,14 +1,14 @@
 import { GetStaticProps } from 'next';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { AiOutlineCalendar } from 'react-icons/ai';
 import { IoPersonOutline } from 'react-icons/io5';
 
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
-import { RichText } from 'prismic-dom';
 import { getPrismicClient } from '../services/prismic';
 
-import commonStyles from '../styles/common.module.scss';
+/* import commonStyles from '../styles/common.module.scss'; */
 import styles from './home.module.scss';
 
 interface Post {
@@ -32,7 +32,16 @@ interface HomeProps {
 }
 
 export default function Home({ postsPagination }: HomeProps): ReactElement {
-  const { results } = postsPagination;
+  const { results, next_page } = postsPagination;
+  const [posts, setPosts] = useState<Post[]>(results);
+  const [nextPage, setNextPage] = useState(next_page);
+
+  const handleFetchNextPage = async (): Promise<void> => {
+    const response = await fetch(next_page);
+    const nextPagePosts = await response.json();
+    setPosts([...posts, ...nextPagePosts.results]);
+    setNextPage(nextPagePosts.next_page);
+  };
 
   return (
     <>
@@ -40,25 +49,37 @@ export default function Home({ postsPagination }: HomeProps): ReactElement {
         <img src="/images/Logo.svg" alt="logo" />
 
         <section className={styles.previews}>
-          {results.map(post => (
-            <a key={post.id} href={post.uid}>
-              <h1>{post.data.title}</h1>
-              <p>{post.data.subtitle}</p>
-              <div>
-                <time>
-                  <AiOutlineCalendar />
-                  {post.first_publication_date}
-                </time>
-                <span>
-                  <IoPersonOutline />
-                  {post.data.author}
-                </span>
-              </div>
-            </a>
+          {posts.map(post => (
+            <Link key={post.id} href={`/post/${post.uid}`}>
+              <a>
+                <h1>{post.data.title}</h1>
+                <p>{post.data.subtitle}</p>
+                <div>
+                  <time>
+                    <AiOutlineCalendar />
+                    {format(
+                      new Date(post.first_publication_date),
+                      'dd MMM yyyy',
+                      {
+                        locale: ptBR,
+                      }
+                    )}
+                  </time>
+                  <span>
+                    <IoPersonOutline />
+                    {post.data.author}
+                  </span>
+                </div>
+              </a>
+            </Link>
           ))}
         </section>
 
-        <button type="button">Carregar mais posts</button>
+        {nextPage && (
+          <button type="button" onClick={handleFetchNextPage}>
+            Carregar mais posts
+          </button>
+        )}
       </main>
     </>
   );
@@ -66,31 +87,15 @@ export default function Home({ postsPagination }: HomeProps): ReactElement {
 
 export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient({});
-  const postsResponse = await prismic.getByType('posts');
-
-  const results = postsResponse.results.map(post => ({
-    id: post.id,
-    uid: post.uid,
-    first_publication_date: format(
-      new Date(post.first_publication_date),
-      'dd MMM yyyy',
-      {
-        locale: ptBR,
-      }
-    ),
-    data: {
-      title: RichText.asText(post.data.title),
-      subtitle: post.data.subtitle,
-      author: post.data.author,
-    },
-  }));
+  const postsResponse = await prismic.getByType('posts', {
+    lang: 'pt-BR',
+    pageSize: 1,
+  });
 
   return {
     props: {
-      postsPagination: {
-        next_page: postsResponse.next_page,
-        results,
-      },
+      postsPagination: postsResponse,
     },
+    revalidate: 60 * 10, // 10 minutes
   };
 };
