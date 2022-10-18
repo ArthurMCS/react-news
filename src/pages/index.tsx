@@ -1,5 +1,5 @@
 import { GetStaticProps } from 'next';
-import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { ReactElement, useState } from 'react';
 import Link from 'next/link';
 import { AiOutlineCalendar } from 'react-icons/ai';
 import { IoPersonOutline } from 'react-icons/io5';
