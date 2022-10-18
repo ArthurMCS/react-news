@@ -52,7 +52,7 @@ export default function Post({ post }: PostProps): ReactElement {
 
     post.data.content.forEach(content => {
       content.body.forEach(body => {
-        wordCount += body.text?.split(' ').length;
+        wordCount += String(body.text).split(' ').length;
       });
     });
 
