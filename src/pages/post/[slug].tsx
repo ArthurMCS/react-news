@@ -47,7 +47,9 @@ interface GetStaticPathsReturn {
 export default function Post({ post }: PostProps): ReactElement {
   const router = useRouter();
 
-  const readTime = useMemo(() => {
+  if (router.isFallback) return <div>Carregando...</div>;
+
+  const readTime = (): number => {
     let wordCount = 0;
 
     post.data.content.forEach(content => {
@@ -57,9 +59,7 @@ export default function Post({ post }: PostProps): ReactElement {
     });
 
     return Math.ceil(wordCount / 200);
-  }, [post.data.content]);
-
-  if (router.isFallback) return <div>Carregando...</div>;
+  };
 
   return (
     <>
@@ -82,7 +82,7 @@ export default function Post({ post }: PostProps): ReactElement {
             </span>
             <span>
               <FiClock />
-              {readTime} min
+              {readTime()} min
             </span>
           </div>
 
@@ -118,7 +118,7 @@ export const getStaticPaths: GetStaticPaths =
           slug: post.uid,
         },
       })),
-      fallback: false,
+      fallback: true,
     };
   };
 
