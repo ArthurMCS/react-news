@@ -88,7 +88,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient({});
   const postsResponse = await prismic.getByType('posts', {
     lang: 'pt-BR',
-    pageSize: 1,
+    pageSize: 4,
   });
 
   return {
