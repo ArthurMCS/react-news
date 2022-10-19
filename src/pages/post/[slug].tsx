@@ -113,12 +113,12 @@ export const getStaticPaths: GetStaticPaths =
     });
 
     return {
-      paths: posts.results.map(post => ({
+      paths: posts.results.slice(0, 2).map(post => ({
         params: {
           slug: post.uid,
         },
       })),
-      fallback: true,
+      fallback: false,
     };
   };
 
