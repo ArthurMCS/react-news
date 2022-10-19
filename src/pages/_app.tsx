@@ -7,6 +7,12 @@ function MyApp({ Component, pageProps }: AppProps): JSX.Element {
     <>
       <Head>
         <title>spacetraveling</title>
+        <link
+          type="image/png"
+          sizes="32x32"
+          rel="icon"
+          href="/images/icons8-código-fonte-32.png"
+        />
       </Head>
       <Component {...pageProps} />
     </>
